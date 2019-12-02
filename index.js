@@ -16,7 +16,7 @@ server.get('/', (req, res) => {
         res.status(200).json(users);
     })
     .catch(error => {
-        console.log('error on GET /api/users', error);
+        res.status(500).json({ error: 'The users information could not be retrieved' })
     });
  });
 
@@ -25,12 +25,12 @@ server.get('/', (req, res) => {
 
  server.get('/api/users/:id', (req, res) => {
      const id = req.params.id;
-    db.findById(id)
+        db.findById(id)
     .then(id => {
         res.status(200).json(id);
     })
     .catch(error => {
-        console.log('error on GET /api/users/:id', error);
+        res.status(404).json({ message: "The user with that ID does not exist" })
     });
  });
 
@@ -39,30 +39,76 @@ server.get('/', (req, res) => {
  server.post('/api/users', (req, res) => {
     //get data the client sent
     const userData = req.body; //express does not know how to parse json
+    console.log(userData);
+
+    if (userData.name && userData.bio) {
+        db.insert(userData)
+        .then(id => {
+            res.status(201).json(id);
+            console.log(`${id}`)
+        })
+        .catch(error => {
+            console.log('error with POST /api/users', error);
+            res.status(500).json({ errorMessage: 'Error posting a new user', error});
+        });
+    } 
+    else {
+        res.status(400).json({ errorMessage: "Please provide a name and bio for user"});
+    }
+});
+    
 
     //call the db and add the hub
-    db.insert(userData)
-    .then(id => {
-        res.status(201).json(id);
-    })
-    .catch(error => {
-        console.log('error on POST /api/users', error);
-        res.status(500).json({ errorMessage: 'error posting a new user', error});
-    });
-});
+
 
 // remove(): the remove method accepts an id as it's first parameter and upon successfully deleting the user from the database it returns the number of records deleted.
 
 server.delete('/api/users/:id', (req, res) => {
     const id = req.params.id;
     db.remove(id)
-    .then(id => {
-        res.status(200).json({ message: `Succesfully deleted user`})
+    .then(removed => {
+        if(removed){
+            res.status(200).json({ message: 'User removed', removed});
+        } else {
+            res.status(404).json({ message: "A user with that ID does not exist"});
+        }
     })
-    .catch(error => {
-        console.log("error with DELETE user by id", error);
+    .catch(err => {
+        console.log('error with DELETE /api/users/:id', err);
+        res.status(500).json({errorMessage: "User could not be removed"});
     });
 });
+
+// update(): accepts two arguments, the first is the id of the user to update and the second is an object with the changes to apply. It returns the count of updated records. If the count is 1 it means the record was updated correctly.
+
+server.put('/api/users/:id', (req, res) => {
+    const user = req.body;
+    const id = req.params.id;
+    db.findById(id)
+   
+       .then(users =>{
+       if (users){
+           res.status(200).json(users);
+       } else { 
+           res.status(404).json({ message: "The user with that ID does not exist" })
+       };
+       })
+       if (user.name && user.bio) {
+           db.update(id, user)
+           .then(user => {
+               res.status(200).json(user);
+           }) 
+           .catch(err => {
+               console.log('error on PUT for /api/users/:id', err);
+               res.status(500).json({ errorMessage: "Could not be updated"});
+           });
+       } else if (user.name && user.bio && !user.id) {
+           res.status(404).json({message: "The user with that ID does not exist"});
+       }
+       else {
+           res.status(400).json({ errorMessage: "Provide name and bio for the user"});
+       }
+   });
 
 const port = 4500;
 server.listen(port, () => 
