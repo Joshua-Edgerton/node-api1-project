@@ -13,9 +13,9 @@ server.get('/', (req, res) => {
     const userData = req.body; //express does not know how to parse json
 
     //call the db and add the hub
-    db.add(userData)
-    .then(user => {
-        res.status(201).json(user);
+    db.insert(userData)
+    .then(id => {
+        res.status(201).json(id);
     })
     .catch(error => {
         console.log('error on POST /api/users', error);
@@ -34,10 +34,9 @@ server.get('/', (req, res) => {
  });
 
  server.get('/api/users/:id', (req, res) => {
-    const id = req.params.id;
-    db.find(id)
-    .then(users => {
-        res.status(200).json(users);
+    db.findById()
+    .then(id => {
+        res.status(200).json(id);
     })
     .catch(error => {
         console.log('error on GET /api/users/:id', error);
