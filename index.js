@@ -51,6 +51,19 @@ server.get('/', (req, res) => {
     });
 });
 
+// remove(): the remove method accepts an id as it's first parameter and upon successfully deleting the user from the database it returns the number of records deleted.
+
+server.delete('/api/users/:id', (req, res) => {
+    const id = req.params.id;
+    db.remove(id)
+    .then(id => {
+        res.status(200).json({ message: `Succesfully deleted user`})
+    })
+    .catch(error => {
+        console.log("error with DELETE user by id", error);
+    });
+});
+
 const port = 4500;
 server.listen(port, () => 
 console.log(`\n ** API running on port ${port} \n`)
