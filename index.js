@@ -23,16 +23,21 @@ server.get('/', (req, res) => {
 
 // findById(): this method expects an id as it's only parameter and returns the user corresponding to the id provided or an empty array if no user with that id is found.
 
- server.get('/api/users/:id', (req, res) => {
-     const id = req.params.id;
-        db.findById(id)
-    .then(id => {
-        res.status(200).json(id);
+server.get('/api/users/:id', (req, res) => {
+    const id = req.params.id;
+    db.findById(id)
+    .then(users =>{
+      if (users){
+        res.status(200).json(users);
+      } else { 
+          res.status(404).json({ message: "A user with that ID does not exist" })
+      };
     })
-    .catch(error => {
-        res.status(404).json({ message: "The user with that ID does not exist" })
-    });
- });
+    .catch( err => {
+        console.log('error with GET/api/users/:id', err);
+        res.status(500).json({errorMessage: "The users information could not be retrieved"})
+    })
+});
 
  // insert(): calling insert passing it a user object will add it to the database and return an object with the id of the inserted user. The object looks like this: { id: 123 }.
 
